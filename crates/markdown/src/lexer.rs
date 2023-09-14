@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq)]
-pub enum MarkdownToken {
+pub enum Token {
     Text(String),
     Heading1,  // #
     Heading2,  // ##
@@ -35,7 +35,7 @@ impl Lexer {
         lexer
     }
 
-    pub fn next_token(&mut self) -> MarkdownToken {
+    pub fn next_token(&mut self) -> Token {
         let token = match self.ch {
             b'#' => {
                 let mut heading_level = 1;
@@ -50,30 +50,30 @@ impl Lexer {
                 }
 
                 match heading_level {
-                    1 => MarkdownToken::Heading1,
-                    2 => MarkdownToken::Heading2,
-                    3 => MarkdownToken::Heading3,
-                    4 => MarkdownToken::Heading4,
-                    5 => MarkdownToken::Heading5,
-                    6 => MarkdownToken::Heading6,
-                    _ => MarkdownToken::Illegal,
+                    1 => Token::Heading1,
+                    2 => Token::Heading2,
+                    3 => Token::Heading3,
+                    4 => Token::Heading4,
+                    5 => Token::Heading5,
+                    6 => Token::Heading6,
+                    _ => Token::Illegal,
                 }
             }
             b'*' => {
                 if self.is_italic {
                     self.is_italic = false;
-                    MarkdownToken::Italic
+                    Token::Italic
                 } else if self.peek() == b'*' {
                     self.read_char();
-                    MarkdownToken::Bold
+                    Token::Bold
                 } else {
                     self.is_italic = true;
-                    MarkdownToken::Italic
+                    Token::Italic
                 }
             }
-            b'\n' => MarkdownToken::Newline,
-            0 => MarkdownToken::EndOfFile,
-            _ => MarkdownToken::Text(self.read_text()),
+            b'\n' => Token::Newline,
+            0 => Token::EndOfFile,
+            _ => Token::Text(self.read_text()),
         };
 
         self.read_char();
@@ -137,26 +137,26 @@ mod tests {
 "
         );
         let mut lexer = Lexer::new(input);
-        assert_eq!(lexer.next_token(), MarkdownToken::Newline);
-        assert_eq!(lexer.next_token(), MarkdownToken::Heading1);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(text.clone()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Newline);
-        assert_eq!(lexer.next_token(), MarkdownToken::Heading2);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(text.clone()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Newline);
-        assert_eq!(lexer.next_token(), MarkdownToken::Heading3);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(text.clone()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Newline);
-        assert_eq!(lexer.next_token(), MarkdownToken::Heading4);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(text.clone()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Newline);
-        assert_eq!(lexer.next_token(), MarkdownToken::Heading5);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(text.clone()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Newline);
-        assert_eq!(lexer.next_token(), MarkdownToken::Heading6);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(text.clone()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Newline);
-        assert_eq!(lexer.next_token(), MarkdownToken::EndOfFile);
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::Heading1);
+        assert_eq!(lexer.next_token(), Token::Text(text.clone()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::Heading2);
+        assert_eq!(lexer.next_token(), Token::Text(text.clone()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::Heading3);
+        assert_eq!(lexer.next_token(), Token::Text(text.clone()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::Heading4);
+        assert_eq!(lexer.next_token(), Token::Text(text.clone()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::Heading5);
+        assert_eq!(lexer.next_token(), Token::Text(text.clone()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::Heading6);
+        assert_eq!(lexer.next_token(), Token::Text(text.clone()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 
     #[test]
@@ -164,20 +164,20 @@ mod tests {
         let text = String::from("hi");
         let input = format!("{text} **{text}** *{text}* ***{text}***");
         let mut lexer = Lexer::new(input);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text("hi ".into()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Bold);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text("hi".into()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Bold);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(" ".into()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Italic);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text("hi".into()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Italic);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text(" ".into()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Bold);
-        assert_eq!(lexer.next_token(), MarkdownToken::Italic);
-        assert_eq!(lexer.next_token(), MarkdownToken::Text("hi".into()));
-        assert_eq!(lexer.next_token(), MarkdownToken::Italic);
-        assert_eq!(lexer.next_token(), MarkdownToken::Bold);
-        assert_eq!(lexer.next_token(), MarkdownToken::EndOfFile);
+        assert_eq!(lexer.next_token(), Token::Text("hi ".into()));
+        assert_eq!(lexer.next_token(), Token::Bold);
+        assert_eq!(lexer.next_token(), Token::Text("hi".into()));
+        assert_eq!(lexer.next_token(), Token::Bold);
+        assert_eq!(lexer.next_token(), Token::Text(" ".into()));
+        assert_eq!(lexer.next_token(), Token::Italic);
+        assert_eq!(lexer.next_token(), Token::Text("hi".into()));
+        assert_eq!(lexer.next_token(), Token::Italic);
+        assert_eq!(lexer.next_token(), Token::Text(" ".into()));
+        assert_eq!(lexer.next_token(), Token::Bold);
+        assert_eq!(lexer.next_token(), Token::Italic);
+        assert_eq!(lexer.next_token(), Token::Text("hi".into()));
+        assert_eq!(lexer.next_token(), Token::Italic);
+        assert_eq!(lexer.next_token(), Token::Bold);
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 }
