@@ -1,3 +1,13 @@
+use markdown::to_html;
+
 fn main() {
-    println!("⛺");
+    let html = to_html("
+# Wikiup
+## Wikiup
+### Wikiup
+#### Wikiup
+##### Wikiup
+###### Wikiup
+");
+    println!("{}", html);
 }
