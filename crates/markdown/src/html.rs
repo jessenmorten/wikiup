@@ -41,21 +41,27 @@ pub fn render_html(tokens: Vec<Token>) -> String {
             Token::EndOfFile | Token::Newline => {
                 if h1 {
                     html.push_str("</h1>");
+                    h1 = false;
                 }
                 if h2 {
                     html.push_str("</h2>");
+                    h2 = false;
                 }
                 if h3 {
                     html.push_str("</h3>");
+                    h3 = false;
                 }
                 if h4 {
                     html.push_str("</h4>");
+                    h4 = false;
                 }
                 if h5 {
                     html.push_str("</h5>");
+                    h5 = false;
                 }
                 if h6 {
                     html.push_str("</h6>");
+                    h6 = false;
                 }
             }
             _ => todo!(),
@@ -73,6 +79,7 @@ mod tests {
         let tokens = vec![
             Token::Heading1,
             Token::Text("Hello World".into()),
+            Token::Newline,
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<h1>Hello World</h1>");
@@ -83,6 +90,7 @@ mod tests {
         let tokens = vec![
             Token::Heading2,
             Token::Text("Hello World".into()),
+            Token::Newline,
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<h2>Hello World</h2>");
@@ -93,6 +101,7 @@ mod tests {
         let tokens = vec![
             Token::Heading3,
             Token::Text("Hello World".into()),
+            Token::Newline,
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<h3>Hello World</h3>");
@@ -103,6 +112,7 @@ mod tests {
         let tokens = vec![
             Token::Heading4,
             Token::Text("Hello World".into()),
+            Token::Newline,
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<h4>Hello World</h4>");
@@ -113,6 +123,7 @@ mod tests {
         let tokens = vec![
             Token::Heading5,
             Token::Text("Hello World".into()),
+            Token::Newline,
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<h5>Hello World</h5>");
@@ -123,6 +134,7 @@ mod tests {
         let tokens = vec![
             Token::Heading6,
             Token::Text("Hello World".into()),
+            Token::Newline,
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<h6>Hello World</h6>");
