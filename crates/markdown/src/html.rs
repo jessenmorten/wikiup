@@ -8,10 +8,15 @@ pub fn render_html(tokens: Vec<Token>) -> String {
     let mut h4 = false;
     let mut h5 = false;
     let mut h6 = false;
+    let mut p = false;
 
     for token in tokens {
         match token {
             Token::Text(text) => {
+                if !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
+                    html.push_str("<p>");
+                    p = true;
+                }
                 html.push_str(&text);
             }
             Token::Heading1 => {
@@ -62,6 +67,10 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 if h6 {
                     html.push_str("</h6>");
                     h6 = false;
+                }
+                if p {
+                    html.push_str("</p>");
+                    p = false;
                 }
             }
             _ => todo!(),
@@ -138,5 +147,15 @@ mod tests {
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<h6>Hello World</h6>");
+    }
+
+    #[test]
+    fn p() {
+        let tokens = vec![
+            Token::Text("Hello World".into()),
+            Token::Newline,
+            Token::EndOfFile,
+        ];
+        assert_eq!(render_html(tokens), "<p>Hello World</p>");
     }
 }
