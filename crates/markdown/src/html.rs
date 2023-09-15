@@ -43,7 +43,7 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 html.push_str("<h6>");
                 h6 = true;
             }
-            Token::EndOfFile | Token::Newline => {
+            Token::EndOfFile | Token::Newline | Token::DoubleNewline => {
                 if h1 {
                     html.push_str("</h1>");
                     h1 = false;
@@ -71,6 +71,9 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 if p {
                     html.push_str("</p>");
                     p = false;
+                }
+                if token == Token::DoubleNewline {
+                    html.push_str("<br>");
                 }
             }
             _ => todo!(),
@@ -157,5 +160,17 @@ mod tests {
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<p>Hello World</p>");
+    }
+
+    #[test]
+    fn newlines() {
+        let tokens = vec![
+            Token::Text("Hi".into()),
+            Token::DoubleNewline,
+            Token::Text("Yo".into()),
+            Token::Newline,
+            Token::EndOfFile,
+        ];
+        assert_eq!(render_html(tokens), "<p>Hi</p><br><p>Yo</p>");
     }
 }

@@ -1,17 +1,18 @@
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Text(String),
-    Heading1,  // #
-    Heading2,  // ##
-    Heading3,  // ###
-    Heading4,  // ####
-    Heading5,  // #####
-    Heading6,  // ######
-    Bold,      // **
-    Italic,    // *
-    Newline,   // \n
-    EndOfFile, // 0
-    Illegal,   // ?
+    Heading1,      // #
+    Heading2,      // ##
+    Heading3,      // ###
+    Heading4,      // ####
+    Heading5,      // #####
+    Heading6,      // ######
+    Bold,          // **
+    Italic,        // *
+    Newline,       // \n
+    DoubleNewline, // \n\n
+    EndOfFile,     // 0
+    Illegal,       // ?
 }
 
 pub struct Lexer {
@@ -71,7 +72,14 @@ impl Lexer {
                     Token::Italic
                 }
             }
-            b'\n' => Token::Newline,
+            b'\n' => {
+                if self.peek() == b'\n' {
+                    self.read_char();
+                    Token::DoubleNewline
+                } else {
+                    Token::Newline
+                }
+            }
             0 => Token::EndOfFile,
             _ => Token::Text(self.read_text()),
         };
@@ -178,6 +186,17 @@ mod tests {
         assert_eq!(lexer.next_token(), Token::Text("hi".into()));
         assert_eq!(lexer.next_token(), Token::Italic);
         assert_eq!(lexer.next_token(), Token::Bold);
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
+    }
+
+    #[test]
+    fn newlines() {
+        let input = format!("Hello\n\nWorld\n");
+        let mut lexer = Lexer::new(input);
+        assert_eq!(lexer.next_token(), Token::Text("Hello".into()));
+        assert_eq!(lexer.next_token(), Token::DoubleNewline);
+        assert_eq!(lexer.next_token(), Token::Text("World".into()));
+        assert_eq!(lexer.next_token(), Token::Newline);
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 }
