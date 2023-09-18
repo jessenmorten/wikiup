@@ -108,13 +108,21 @@ impl Lexer {
     }
 
     fn read_text(&mut self) -> String {
-        let mut text = String::new();
-        text.push(self.ch as char);
+        let mut bytes = Vec::new();
+        bytes.push(self.ch);
+
         while self.is_peek_text() {
             self.read_char();
-            text.push(self.ch as char);
+            bytes.push(self.ch);
         }
-        text
+
+        match String::from_utf8(bytes) {
+            Ok(s) => s,
+            Err(_) => {
+                eprintln!("Error: Invalid UTF-8 sequence");
+                String::new()
+            }
+        }
     }
 
     fn is_peek_text(&mut self) -> bool {

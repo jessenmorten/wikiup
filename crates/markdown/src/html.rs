@@ -76,7 +76,7 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                     html.push_str("<br>");
                 }
             }
-            _ => todo!(),
+            _ => todo!("{:?}", token),
         }
     }
     html
