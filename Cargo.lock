@@ -7,8 +7,13 @@ name = "markdown"
 version = "0.1.0"
 
 [[package]]
+name = "util"
+version = "0.1.0"
+
+[[package]]
 name = "wikiup"
 version = "0.1.0"
 dependencies = [
  "markdown",
+ "util",
 ]
