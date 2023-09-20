@@ -10,6 +10,7 @@ pub fn render_html(tokens: Vec<Token>) -> String {
     let mut h6 = false;
     let mut p = false;
     let mut bold = false;
+    let mut italic = false;
 
     for token in tokens {
         match token {
@@ -51,6 +52,14 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                     html.push_str("</b>");
                 }
                 bold = !bold;
+            }
+            Token::Italic => {
+                if !italic {
+                    html.push_str("<i>");
+                } else {
+                    html.push_str("</i>");
+                }
+                italic = !bold;
             }
             Token::EndOfFile | Token::Newline | Token::DoubleNewline => {
                 if h1 {
@@ -182,6 +191,19 @@ mod tests {
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<p>Hello <b>World!</b></p>");
+    }
+
+    #[test]
+    fn italic() {
+        let tokens = vec![
+            Token::Text("Hello ".into()),
+            Token::Italic,
+            Token::Text("World!".into()),
+            Token::Italic,
+            Token::Newline,
+            Token::EndOfFile,
+        ];
+        assert_eq!(render_html(tokens), "<p>Hello <i>World!</i></p>");
     }
 
     #[test]
