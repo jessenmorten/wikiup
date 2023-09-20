@@ -9,6 +9,7 @@ pub fn render_html(tokens: Vec<Token>) -> String {
     let mut h5 = false;
     let mut h6 = false;
     let mut p = false;
+    let mut bold = false;
 
     for token in tokens {
         match token {
@@ -42,6 +43,14 @@ pub fn render_html(tokens: Vec<Token>) -> String {
             Token::Heading6 => {
                 html.push_str("<h6>");
                 h6 = true;
+            }
+            Token::Bold => {
+                if !bold {
+                    html.push_str("<b>");
+                } else {
+                    html.push_str("</b>");
+                }
+                bold = !bold;
             }
             Token::EndOfFile | Token::Newline | Token::DoubleNewline => {
                 if h1 {
@@ -160,6 +169,19 @@ mod tests {
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<p>Hello World</p>");
+    }
+
+    #[test]
+    fn bold() {
+        let tokens = vec![
+            Token::Text("Hello ".into()),
+            Token::Bold,
+            Token::Text("World!".into()),
+            Token::Bold,
+            Token::Newline,
+            Token::EndOfFile,
+        ];
+        assert_eq!(render_html(tokens), "<p>Hello <b>World!</b></p>");
     }
 
     #[test]
