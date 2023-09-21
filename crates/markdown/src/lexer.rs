@@ -9,6 +9,7 @@ pub enum Token {
     Heading6,      // ######
     Bold,          // **
     Italic,        // *
+    Code(String),  // `
     Newline,       // \n
     DoubleNewline, // \n\n
     EndOfFile,     // 0
@@ -72,6 +73,23 @@ impl Lexer {
                     Token::Italic
                 }
             }
+            b'`' => {
+                let mut bytes = Vec::new();
+                self.read_char();
+
+                while self.ch != b'`' {
+                    bytes.push(self.ch);
+                    self.read_char();
+                }
+
+                match String::from_utf8(bytes) {
+                    Ok(s) => Token::Code(s),
+                    Err(_) => {
+                        eprintln!("Error: Invalid UTF-8 sequence");
+                        Token::Code(String::new())
+                    }
+                }
+            }
             b'\n' => {
                 if self.peek() == b'\n' {
                     self.read_char();
@@ -127,7 +145,7 @@ impl Lexer {
 
     fn is_peek_text(&mut self) -> bool {
         let peek = self.peek();
-        if peek == b'#' || peek == b'*' || peek == b'\n' || peek == 0 {
+        if peek == b'#' || peek == b'`' || peek == b'*' || peek == b'\n' || peek == 0 {
             return false;
         } else {
             return true;
@@ -205,6 +223,15 @@ mod tests {
         assert_eq!(lexer.next_token(), Token::DoubleNewline);
         assert_eq!(lexer.next_token(), Token::Text("World".into()));
         assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
+    }
+
+    #[test]
+    fn code() {
+        let input = format!("Example: `code`");
+        let mut lexer = Lexer::new(input);
+        assert_eq!(lexer.next_token(), Token::Text("Example: ".into()));
+        assert_eq!(lexer.next_token(), Token::Code("code".into()));
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 }
