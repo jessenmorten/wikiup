@@ -90,9 +90,21 @@ impl Lexer {
                     }
                 }
             }
-            b'\n' => {
-                if self.peek() == b'\n' {
+            b'\r' | b'\n' => {
+                let mut newline_count = 0;
+
+                if self.ch == b'\n' {
+                    newline_count += 1;
+                }
+
+                while newline_count < 2 && (self.peek() == b'\r' || self.peek() == b'\n') {
                     self.read_char();
+                    if self.ch == b'\n' {
+                        newline_count += 1;
+                    }
+                }
+
+                if newline_count == 2 {
                     Token::DoubleNewline
                 } else {
                     Token::Newline
@@ -145,7 +157,13 @@ impl Lexer {
 
     fn is_peek_text(&mut self) -> bool {
         let peek = self.peek();
-        if peek == b'#' || peek == b'`' || peek == b'*' || peek == b'\n' || peek == 0 {
+        if peek == b'#'
+            || peek == b'`'
+            || peek == b'*'
+            || peek == b'\n'
+            || peek == b'\r'
+            || peek == 0
+        {
             return false;
         } else {
             return true;
@@ -232,6 +250,18 @@ mod tests {
         let mut lexer = Lexer::new(input);
         assert_eq!(lexer.next_token(), Token::Text("Example: ".into()));
         assert_eq!(lexer.next_token(), Token::Code("code".into()));
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
+    }
+
+    #[test]
+    fn handle_carriage_return() {
+        let input = String::from("# Hello\r\n\r\nWorld\r\n");
+        let mut lexer = Lexer::new(input);
+        assert_eq!(lexer.next_token(), Token::Heading1);
+        assert_eq!(lexer.next_token(), Token::Text("Hello".into()));
+        assert_eq!(lexer.next_token(), Token::DoubleNewline);
+        assert_eq!(lexer.next_token(), Token::Text("World".into()));
+        assert_eq!(lexer.next_token(), Token::Newline);
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 }
