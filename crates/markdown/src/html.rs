@@ -21,6 +21,15 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 }
                 html.push_str(&text);
             }
+            Token::Code(code) => {
+                if !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
+                    html.push_str("<p>");
+                    p = true;
+                }
+                html.push_str("<code>");
+                html.push_str(&code);
+                html.push_str("</code>");
+            }
             Token::Heading1 => {
                 html.push_str("<h1>");
                 h1 = true;
@@ -216,5 +225,17 @@ mod tests {
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<p>Hi</p><br><p>Yo</p>");
+    }
+
+
+    #[test]
+    fn inline_code() {
+        let tokens = vec![
+            Token::Code("Hello".into()),
+            Token::Text(" World!".into()),
+            Token::Newline,
+            Token::EndOfFile,
+        ];
+        assert_eq!(render_html(tokens), "<p><code>Hello</code> World!</p>");
     }
 }
