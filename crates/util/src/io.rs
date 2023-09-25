@@ -18,7 +18,7 @@ pub fn get_all_markdown_files(root: PathBuf) -> Receiver<PathBuf> {
 
             if is_markdown {
                 if let Err(err) = tx.send(path) {
-                    eprintln!("Failed to send path: {}", err);
+                    eprintln!("Failed to send path: {err}");
                     break;
                 }
             }
@@ -35,19 +35,19 @@ pub fn get_all_files(root: PathBuf) -> Receiver<PathBuf> {
         let mut to_walk = vec![root];
 
         while let Some(path_to_walk) = to_walk.pop() {
-            let mut dir = match read_dir(path_to_walk) {
+            let dir = match read_dir(path_to_walk) {
                 Ok(dir) => dir,
                 Err(err) => {
-                    eprintln!("Failed to read dir: {}", err);
+                    eprintln!("Failed to read dir: {err}");
                     continue;
                 }
             };
 
-            while let Some(entry) = dir.next() {
+            for entry in dir {
                 let entry = match entry {
                     Ok(entry) => entry,
                     Err(err) => {
-                        eprintln!("Failed to read entry: {}", err);
+                        eprintln!("Failed to read entry: {err}");
                         continue;
                     }
                 };
@@ -55,11 +55,9 @@ pub fn get_all_files(root: PathBuf) -> Receiver<PathBuf> {
                 let new_path = entry.path();
                 if new_path.is_dir() {
                     to_walk.push(new_path);
-                } else {
-                    if let Err(err) = tx.send(new_path) {
-                        eprintln!("Failed to send path: {}", err);
-                        break;
-                    }
+                } else if let Err(err) = tx.send(new_path) {
+                    eprintln!("Failed to send path: {err}");
+                    break;
                 }
             }
         }

@@ -115,14 +115,14 @@ impl Lexer {
         };
 
         self.read_char();
-        return token;
+        token
     }
 
     fn peek(&self) -> u8 {
         if self.read_position >= self.input.len() {
-            return 0;
+            0
         } else {
-            return self.input[self.read_position];
+            self.input[self.read_position]
         }
     }
 
@@ -157,17 +157,12 @@ impl Lexer {
 
     fn is_peek_text(&mut self) -> bool {
         let peek = self.peek();
-        if peek == b'#'
+        !(peek == b'#'
             || peek == b'`'
             || peek == b'*'
             || peek == b'\n'
             || peek == b'\r'
-            || peek == 0
-        {
-            return false;
-        } else {
-            return true;
-        }
+            || peek == 0)
     }
 }
 
@@ -206,7 +201,7 @@ mod tests {
         assert_eq!(lexer.next_token(), Token::Text(text.clone()));
         assert_eq!(lexer.next_token(), Token::Newline);
         assert_eq!(lexer.next_token(), Token::Heading6);
-        assert_eq!(lexer.next_token(), Token::Text(text.clone()));
+        assert_eq!(lexer.next_token(), Token::Text(text));
         assert_eq!(lexer.next_token(), Token::Newline);
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
@@ -235,7 +230,7 @@ mod tests {
 
     #[test]
     fn newlines() {
-        let input = format!("Hello\n\nWorld\n");
+        let input = "Hello\n\nWorld\n".to_string();
         let mut lexer = Lexer::new(input);
         assert_eq!(lexer.next_token(), Token::Text("Hello".into()));
         assert_eq!(lexer.next_token(), Token::DoubleNewline);
@@ -246,7 +241,7 @@ mod tests {
 
     #[test]
     fn code() {
-        let input = format!("Example: `code`");
+        let input = "Example: `code`".to_string();
         let mut lexer = Lexer::new(input);
         assert_eq!(lexer.next_token(), Token::Text("Example: ".into()));
         assert_eq!(lexer.next_token(), Token::Code("code".into()));

@@ -10,7 +10,7 @@ fn main() {
     while let Ok(path) = file_rx.recv() {
         if let Ok(markdown) = read_to_string(&path) {
             let html = to_html(&markdown);
-            println!("{}", html);
+            println!("{html}");
         }
     }
 

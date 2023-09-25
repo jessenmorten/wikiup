@@ -6,8 +6,7 @@ pub fn get_avaliable_parallelism() -> NonZeroUsize {
         Err(err) => {
             let default_parallelism = 4;
             eprintln!(
-                "Failed to get available parallelism, using {} as default: {}",
-                default_parallelism, err
+                "Failed to get available parallelism, using {default_parallelism} as default: {err}"
             );
             NonZeroUsize::new(default_parallelism).unwrap()
         }
