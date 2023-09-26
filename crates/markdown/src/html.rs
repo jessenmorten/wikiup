@@ -30,6 +30,18 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 html.push_str(&code);
                 html.push_str("</code>");
             }
+            Token::CodeBlock(language, code) => {
+                html.push_str("<pre>");
+                if let Some(lang) = language {
+                    html.push_str("<code class=\"language-");
+                    html.push_str(&lang);
+                    html.push_str("\">");
+                } else {
+                    html.push_str("<code>");
+                }
+                html.push_str(&code);
+                html.push_str("</code></pre>");
+            }
             Token::Heading1 => {
                 html.push_str("<h1>");
                 h1 = true;
@@ -227,7 +239,6 @@ mod tests {
         assert_eq!(render_html(tokens), "<p>Hi</p><br><p>Yo</p>");
     }
 
-
     #[test]
     fn inline_code() {
         let tokens = vec![
@@ -237,5 +248,28 @@ mod tests {
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<p><code>Hello</code> World!</p>");
+    }
+
+    #[test]
+    fn code_block() {
+        let tokens = vec![
+            Token::CodeBlock(
+                Some("rust".into()),
+                "fn main() {\n    println!(\"Hello World!\");\n}".into(),
+            ),
+            Token::Newline,
+            Token::EndOfFile,
+        ];
+        assert_eq!(render_html(tokens), "<pre><code class=\"language-rust\">fn main() {\n    println!(\"Hello World!\");\n}</code></pre>");
+    }
+
+    #[test]
+    fn code_block_no_language() {
+        let tokens = vec![
+            Token::CodeBlock(None, "Hello\nWorld!".into()),
+            Token::Newline,
+            Token::EndOfFile,
+        ];
+        assert_eq!(render_html(tokens), "<pre><code>Hello\nWorld!</code></pre>");
     }
 }

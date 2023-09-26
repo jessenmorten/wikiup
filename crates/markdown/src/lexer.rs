@@ -1,19 +1,20 @@
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Text(String),
-    Heading1,      // #
-    Heading2,      // ##
-    Heading3,      // ###
-    Heading4,      // ####
-    Heading5,      // #####
-    Heading6,      // ######
-    Bold,          // **
-    Italic,        // *
-    Code(String),  // `
-    Newline,       // \n
-    DoubleNewline, // \n\n
-    EndOfFile,     // 0
-    Illegal,       // ?
+    Heading1,                          // #
+    Heading2,                          // ##
+    Heading3,                          // ###
+    Heading4,                          // ####
+    Heading5,                          // #####
+    Heading6,                          // ######
+    Bold,                              // **
+    Italic,                            // *
+    Code(String),                      // `
+    CodeBlock(Option<String>, String), // ```lang\n...\n```
+    Newline,                           // \n
+    DoubleNewline,                     // \n\n
+    EndOfFile,                         // 0
+    Illegal,                           // ?
 }
 
 pub struct Lexer {
@@ -74,20 +75,20 @@ impl Lexer {
                 }
             }
             b'`' => {
-                let mut bytes = Vec::new();
                 self.read_char();
+                let mut tick_count = 1;
 
-                while self.ch != b'`' {
-                    bytes.push(self.ch);
+                while self.ch == b'`' {
+                    tick_count += 1;
                     self.read_char();
                 }
 
-                match String::from_utf8(bytes) {
-                    Ok(s) => Token::Code(s),
-                    Err(_) => {
-                        eprintln!("Error: Invalid UTF-8 sequence");
-                        Token::Code(String::new())
-                    }
+                if tick_count == 1 {
+                    self.get_code()
+                } else if tick_count == 3 {
+                    self.get_code_block()
+                } else {
+                    Token::Illegal
                 }
             }
             b'\r' | b'\n' => {
@@ -135,6 +136,10 @@ impl Lexer {
 
         self.position = self.read_position;
         self.read_position += 1;
+
+        if self.ch == b'\r' {
+            self.read_char();
+        }
     }
 
     fn read_text(&mut self) -> String {
@@ -163,6 +168,64 @@ impl Lexer {
             || peek == b'\n'
             || peek == b'\r'
             || peek == 0)
+    }
+
+    fn get_code(&mut self) -> Token {
+        let mut bytes = Vec::new();
+        while self.ch != b'`' {
+            bytes.push(self.ch);
+            self.read_char();
+        }
+
+        match String::from_utf8(bytes) {
+            Ok(s) => Token::Code(s),
+            Err(_) => {
+                eprintln!("Error: Invalid UTF-8 sequence");
+                Token::Code(String::new())
+            }
+        }
+    }
+
+    fn get_code_block(&mut self) -> Token {
+        let mut lang_bytes = vec![];
+        while self.ch != b'\n' && self.ch != b'\r' {
+            lang_bytes.push(self.ch);
+            self.read_char();
+        }
+
+        while self.ch == b'\n' || self.ch == b'\r' {
+            self.read_char();
+        }
+
+        let lang = match String::from_utf8(lang_bytes) {
+            Ok(s) if s.is_empty() => None,
+            Ok(s) => Some(s),
+            Err(_) => {
+                eprintln!("Error: Invalid UTF-8 sequence");
+                None
+            }
+        };
+
+        let mut code_bytes = vec![];
+        while self.ch != b'`' {
+            code_bytes.push(self.ch);
+            self.read_char();
+        }
+
+        while code_bytes.last() == Some(&b'\n') || code_bytes.last() == Some(&b'\r') {
+            code_bytes.pop();
+        }
+
+        self.read_char();
+        self.read_char();
+
+        match String::from_utf8(code_bytes) {
+            Ok(s) => Token::CodeBlock(lang, s),
+            Err(_) => {
+                eprintln!("Error: Invalid UTF-8 sequence");
+                Token::CodeBlock(lang, String::new())
+            }
+        }
     }
 }
 
@@ -245,6 +308,25 @@ mod tests {
         let mut lexer = Lexer::new(input);
         assert_eq!(lexer.next_token(), Token::Text("Example: ".into()));
         assert_eq!(lexer.next_token(), Token::Code("code".into()));
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
+    }
+
+    #[test]
+    fn code_block_no_language() {
+        let input = "```\ncode\n```".to_string();
+        let mut lexer = Lexer::new(input);
+        assert_eq!(lexer.next_token(), Token::CodeBlock(None, "code".into()));
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
+    }
+
+    #[test]
+    fn code_block() {
+        let input = "```rust\n\rcode\n\rmore code\n\r```".to_string();
+        let mut lexer = Lexer::new(input);
+        assert_eq!(
+            lexer.next_token(),
+            Token::CodeBlock(Some("rust".into()), "code\nmore code".into())
+        );
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 
