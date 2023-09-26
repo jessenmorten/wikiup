@@ -28,7 +28,7 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(input: String) -> Self {
         let mut lexer = Self {
-            input: input.into_bytes(),
+            input: input.replace("\r", "").into_bytes(),
             position: 0,
             read_position: 0,
             ch: 0,
@@ -91,14 +91,14 @@ impl Lexer {
                     Token::Illegal
                 }
             }
-            b'\r' | b'\n' => {
+            b'\n' => {
                 let mut newline_count = 0;
 
                 if self.ch == b'\n' {
                     newline_count += 1;
                 }
 
-                while newline_count < 2 && (self.peek() == b'\r' || self.peek() == b'\n') {
+                while newline_count < 2 && self.peek() == b'\n' {
                     self.read_char();
                     if self.ch == b'\n' {
                         newline_count += 1;
@@ -136,10 +136,6 @@ impl Lexer {
 
         self.position = self.read_position;
         self.read_position += 1;
-
-        if self.ch == b'\r' {
-            self.read_char();
-        }
     }
 
     fn read_text(&mut self) -> String {
@@ -162,12 +158,7 @@ impl Lexer {
 
     fn is_peek_text(&mut self) -> bool {
         let peek = self.peek();
-        !(peek == b'#'
-            || peek == b'`'
-            || peek == b'*'
-            || peek == b'\n'
-            || peek == b'\r'
-            || peek == 0)
+        !(peek == b'#' || peek == b'`' || peek == b'*' || peek == b'\n' || peek == 0)
     }
 
     fn get_code(&mut self) -> Token {
@@ -188,12 +179,12 @@ impl Lexer {
 
     fn get_code_block(&mut self) -> Token {
         let mut lang_bytes = vec![];
-        while self.ch != b'\n' && self.ch != b'\r' {
+        while self.ch != b'\n' {
             lang_bytes.push(self.ch);
             self.read_char();
         }
 
-        while self.ch == b'\n' || self.ch == b'\r' {
+        while self.ch == b'\n' {
             self.read_char();
         }
 
@@ -212,7 +203,7 @@ impl Lexer {
             self.read_char();
         }
 
-        while code_bytes.last() == Some(&b'\n') || code_bytes.last() == Some(&b'\r') {
+        while code_bytes.last() == Some(&b'\n') {
             code_bytes.pop();
         }
 
