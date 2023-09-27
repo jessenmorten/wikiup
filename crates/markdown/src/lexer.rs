@@ -28,7 +28,7 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(input: String) -> Self {
         let mut lexer = Self {
-            input: input.replace("\r", "").into_bytes(),
+            input: input.replace('\r', "").into_bytes(),
             position: 0,
             read_position: 0,
             ch: 0,
