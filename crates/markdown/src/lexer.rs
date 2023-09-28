@@ -7,6 +7,7 @@ pub enum Token {
     Heading4,                          // ####
     Heading5,                          // #####
     Heading6,                          // ######
+    UnorderedBullet(usize),            // -
     Bold,                              // **
     Italic,                            // *
     Code(String),                      // `
@@ -21,6 +22,7 @@ pub struct Lexer {
     position: usize,
     read_position: usize,
     ch: u8,
+    pch: u8,
     input: Vec<u8>,
     is_italic: bool,
 }
@@ -32,6 +34,7 @@ impl Lexer {
             position: 0,
             read_position: 0,
             ch: 0,
+            pch: 0,
             is_italic: false,
         };
         lexer.read_char();
@@ -39,6 +42,15 @@ impl Lexer {
     }
 
     pub fn next_token(&mut self) -> Token {
+        let mut leading_spaces = 0;
+
+        if self.pch == b'\n' {
+            while self.ch == b' ' {
+                leading_spaces += 1;
+                self.read_char();
+            }
+        }
+
         let token = match self.ch {
             b'#' => {
                 let mut heading_level = 1;
@@ -60,6 +72,14 @@ impl Lexer {
                     5 => Token::Heading5,
                     6 => Token::Heading6,
                     _ => Token::Illegal,
+                }
+            }
+            b'-' => {
+                self.read_char();
+                if leading_spaces > 0 {
+                    Token::UnorderedBullet(leading_spaces / 2)
+                } else {
+                    Token::UnorderedBullet(0)
                 }
             }
             b'*' => {
@@ -128,6 +148,7 @@ impl Lexer {
     }
 
     fn read_char(&mut self) {
+        self.pch = self.ch;
         if self.read_position >= self.input.len() {
             self.ch = 0;
         } else {
@@ -330,6 +351,26 @@ mod tests {
         assert_eq!(lexer.next_token(), Token::DoubleNewline);
         assert_eq!(lexer.next_token(), Token::Text("World".into()));
         assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::EndOfFile);
+    }
+
+    #[test]
+    fn unordered_bullets() {
+        let input = "- hi\n- hey\n  - hola\n    - **howdy**".to_string();
+        let mut lexer = Lexer::new(input);
+        assert_eq!(lexer.next_token(), Token::UnorderedBullet(0));
+        assert_eq!(lexer.next_token(), Token::Text("hi".into()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::UnorderedBullet(0));
+        assert_eq!(lexer.next_token(), Token::Text("hey".into()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::UnorderedBullet(1));
+        assert_eq!(lexer.next_token(), Token::Text("hola".into()));
+        assert_eq!(lexer.next_token(), Token::Newline);
+        assert_eq!(lexer.next_token(), Token::UnorderedBullet(2));
+        assert_eq!(lexer.next_token(), Token::Bold);
+        assert_eq!(lexer.next_token(), Token::Text("howdy".into()));
+        assert_eq!(lexer.next_token(), Token::Bold);
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 }
