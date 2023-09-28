@@ -224,12 +224,9 @@ impl Lexer {
             self.read_char();
         }
 
-        while code_bytes.last() == Some(&b'\n') {
-            code_bytes.pop();
+        while self.ch == b'`' {
+            self.read_char();
         }
-
-        self.read_char();
-        self.read_char();
 
         match String::from_utf8(code_bytes) {
             Ok(s) => Token::CodeBlock(lang, s),
@@ -327,7 +324,7 @@ mod tests {
     fn code_block_no_language() {
         let input = "```\ncode\n```".to_string();
         let mut lexer = Lexer::new(input);
-        assert_eq!(lexer.next_token(), Token::CodeBlock(None, "code".into()));
+        assert_eq!(lexer.next_token(), Token::CodeBlock(None, "code\n".into()));
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
 
@@ -337,7 +334,7 @@ mod tests {
         let mut lexer = Lexer::new(input);
         assert_eq!(
             lexer.next_token(),
-            Token::CodeBlock(Some("rust".into()), "code\nmore code".into())
+            Token::CodeBlock(Some("rust".into()), "code\nmore code\n".into())
         );
         assert_eq!(lexer.next_token(), Token::EndOfFile);
     }
