@@ -8,6 +8,8 @@ pub fn render_html(tokens: Vec<Token>) -> String {
     let mut h4 = false;
     let mut h5 = false;
     let mut h6 = false;
+    let mut ul = 0;
+    let mut li = false;
     let mut p = false;
     let mut bold = false;
     let mut italic = false;
@@ -15,14 +17,14 @@ pub fn render_html(tokens: Vec<Token>) -> String {
     for token in tokens {
         match token {
             Token::Text(text) => {
-                if !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
+                if !li && !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
                     html.push_str("<p>");
                     p = true;
                 }
                 html.push_str(&text);
             }
             Token::Code(code) => {
-                if !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
+                if !li && !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
                     html.push_str("<p>");
                     p = true;
                 }
@@ -66,7 +68,25 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 html.push_str("<h6>");
                 h6 = true;
             }
+            Token::UnorderedBullet(indent) => {
+                while ul > indent + 1 {
+                    html.push_str("</ul>");
+                    ul -= 1;
+                }
+
+                while ul <= indent {
+                    html.push_str("<ul>");
+                    ul += 1;
+                }
+
+                html.push_str("<li>");
+                li = true;
+            }
             Token::Bold => {
+                if !li && !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
+                    html.push_str("<p>");
+                    p = true;
+                }
                 if !bold {
                     html.push_str("<b>");
                 } else {
@@ -75,6 +95,10 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 bold = !bold;
             }
             Token::Italic => {
+                if !li && !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
+                    html.push_str("<p>");
+                    p = true;
+                }
                 if !italic {
                     html.push_str("<i>");
                 } else {
@@ -110,6 +134,16 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 if p {
                     html.push_str("</p>");
                     p = false;
+                }
+                if li {
+                    html.push_str("</li>");
+                    li = false;
+                }
+                if token == Token::DoubleNewline || token == Token::EndOfFile {
+                    while ul > 0 {
+                        html.push_str("</ul>");
+                        ul -= 1;
+                    }
                 }
                 if token == Token::DoubleNewline {
                     html.push_str("<br>");
@@ -271,5 +305,30 @@ mod tests {
             Token::EndOfFile,
         ];
         assert_eq!(render_html(tokens), "<pre><code>Hello\nWorld!</code></pre>");
+    }
+
+    #[test]
+    fn unordered_list() {
+        let tokens = vec![
+            Token::UnorderedBullet(0),
+            Token::Text("Hello".into()),
+            Token::Newline,
+            Token::UnorderedBullet(0),
+            Token::Text("Hi ".into()),
+            Token::Italic,
+            Token::Text("there".into()),
+            Token::Italic,
+            Token::Newline,
+            Token::UnorderedBullet(1),
+            Token::Text("Hello".into()),
+            Token::Newline,
+            Token::UnorderedBullet(0),
+            Token::Text("Hola".into()),
+            Token::EndOfFile,
+        ];
+        assert_eq!(
+            render_html(tokens),
+            "<ul><li>Hello</li><li>Hi <i>there</i></li><ul><li>Hello</li></ul><li>Hola</li></ul>"
+        );
     }
 }
