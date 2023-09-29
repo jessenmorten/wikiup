@@ -44,6 +44,10 @@ fn main() {
     println!(\"Hello World\");
 }
 ```
+
+- abc
+  - def
+- ghi
 ";
         let expected = vec![
             "<h1>Hello World</h1>",
@@ -57,6 +61,7 @@ fn main() {
             "<p><b>Hola</b> <code>Mundo</code>!</p>",
             "<br>",
             "<pre><code class=\"language-rust\">fn main() {\n    println!(\"Hello World\");\n}\n</code></pre>",
+            "<ul><li>abc</li><ul><li>def</li></ul><li>ghi</li></ul>",
         ]
         .join("");
         assert_eq!(to_html(markdown), expected);
