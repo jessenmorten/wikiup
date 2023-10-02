@@ -1,4 +1,37 @@
-use std::{num::NonZeroUsize, thread::available_parallelism};
+use std::{
+    num::NonZeroUsize,
+    sync::atomic::{AtomicUsize, Ordering},
+    thread::{available_parallelism, spawn},
+};
+
+static MAX_THREADS: AtomicUsize = AtomicUsize::new(1);
+static RUNNING_THREADS: AtomicUsize = AtomicUsize::new(0);
+
+pub fn maybe_spawn<F>(f: F)
+where
+    F: FnOnce() + Send + 'static,
+{
+    let max_threads = MAX_THREADS.load(Ordering::Relaxed);
+    let running_threads = RUNNING_THREADS.load(Ordering::Relaxed);
+
+    if running_threads < max_threads {
+        RUNNING_THREADS.fetch_add(1, Ordering::Relaxed);
+        spawn(move || {
+            f();
+            RUNNING_THREADS.fetch_sub(1, Ordering::Relaxed);
+        });
+    } else {
+        f();
+    }
+}
+
+pub fn get_max_threads() -> usize {
+    MAX_THREADS.load(Ordering::Relaxed)
+}
+
+pub fn set_max_threads(max_threads: usize) {
+    MAX_THREADS.store(max_threads, Ordering::Relaxed);
+}
 
 pub fn get_avaliable_parallelism() -> NonZeroUsize {
     match available_parallelism() {
