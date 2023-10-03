@@ -39,6 +39,8 @@ mod tests {
 *Hello* **World**!
 **Hola** `Mundo`!
 
+Yes, this is a paragraph.
+
 ```rust
 fn main() {
     println!(\"Hello World\");
@@ -56,10 +58,8 @@ fn main() {
             "<h4>Hello World</h4>",
             "<h5>Hello World</h5>",
             "<h6>Hello World</h6>",
-            "<br>",
-            "<p><i>Hello</i> <b>World</b>!</p>",
-            "<p><b>Hola</b> <code>Mundo</code>!</p>",
-            "<br>",
+            "<p><i>Hello</i> <b>World</b>!<b> Hola</b> <code>Mundo</code>!</p>",
+            "<p>Yes, this is a paragraph.</p>",
             "<pre><code class=\"language-rust\">fn main() {\n    println!(\"Hello World\");\n}\n</code></pre>",
             "<ul><li>abc</li><ul><li>def</li></ul><li>ghi</li></ul>",
         ]

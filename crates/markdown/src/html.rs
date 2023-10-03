@@ -13,6 +13,7 @@ pub fn render_html(tokens: Vec<Token>) -> String {
     let mut p = false;
     let mut bold = false;
     let mut italic = false;
+    let mut should_start_with_space = false;
 
     for token in tokens {
         match token {
@@ -20,6 +21,10 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                 if !li && !h1 && !h2 && !h3 && !h4 && !h5 && !h6 && !p {
                     html.push_str("<p>");
                     p = true;
+                }
+                if should_start_with_space {
+                    html.push_str(" ");
+                    should_start_with_space = false;
                 }
                 html.push_str(&text);
             }
@@ -131,7 +136,10 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                     html.push_str("</h6>");
                     h6 = false;
                 }
-                if p {
+                if p && token == Token::Newline {
+                    should_start_with_space = true;
+                }
+                if p && (token == Token::DoubleNewline || token == Token::EndOfFile) {
                     html.push_str("</p>");
                     p = false;
                 }
@@ -144,9 +152,6 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                         html.push_str("</ul>");
                         ul -= 1;
                     }
-                }
-                if token == Token::DoubleNewline {
-                    html.push_str("<br>");
                 }
             }
             _ => todo!("{:?}", token),
@@ -265,12 +270,14 @@ mod tests {
     fn newlines() {
         let tokens = vec![
             Token::Text("Hi".into()),
+            Token::Newline,
+            Token::Text("Hey".into()),
             Token::DoubleNewline,
             Token::Text("Yo".into()),
             Token::Newline,
             Token::EndOfFile,
         ];
-        assert_eq!(render_html(tokens), "<p>Hi</p><br><p>Yo</p>");
+        assert_eq!(render_html(tokens), "<p>Hi Hey</p><p>Yo</p>");
     }
 
     #[test]
