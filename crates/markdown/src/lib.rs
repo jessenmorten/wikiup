@@ -47,6 +47,10 @@ fn main() {
 }
 ```
 
+```
+no language
+```
+
 - abc
   - def
 - ghi
@@ -61,6 +65,7 @@ fn main() {
             "<p><i>Hello</i> <b>World</b>!<b> Hola</b> <code>Mundo</code>!</p>",
             "<p>Yes, this is a paragraph.</p>",
             "<pre><code class=\"language-rust\">fn main() {\n    println!(\"Hello World\");\n}\n</code></pre>",
+            "<pre><code>no language\n</code></pre>",
             "<ul><li>abc</li><ul><li>def</li></ul><li>ghi</li></ul>",
         ]
         .join("");
