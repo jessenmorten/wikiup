@@ -1,5 +1,9 @@
 use markdown::to_html;
-use std::{fs::{read_to_string, create_dir_all, write}, path::PathBuf};
+use std::{
+    env::temp_dir,
+    fs::{create_dir_all, read_to_string, write},
+    path::PathBuf,
+};
 use util::{io::get_all_markdown_files, threads::set_max_threads};
 
 fn main() {
@@ -7,7 +11,7 @@ fn main() {
 
     let start = std::time::Instant::now();
     let root = PathBuf::from(".");
-    let out = PathBuf::from("out");
+    let out = temp_dir().join("wikiup");
     let file_rx = get_all_markdown_files(root.clone());
 
     while let Ok(path) = file_rx.recv() {
@@ -22,9 +26,7 @@ fn main() {
                 }
             };
 
-            let out_path = out
-                .join(path)
-                .with_extension("html");
+            let out_path = out.join(path).with_extension("html");
 
             let out_parent_dir = match out_path.parent() {
                 Some(dir) => dir,
