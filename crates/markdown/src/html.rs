@@ -23,7 +23,7 @@ pub fn render_html(tokens: Vec<Token>) -> String {
                     p = true;
                 }
                 if should_start_with_space {
-                    html.push_str(" ");
+                    html.push(' ');
                     should_start_with_space = false;
                 }
                 html.push_str(&text);

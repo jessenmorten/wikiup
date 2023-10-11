@@ -21,7 +21,7 @@ fn main() {
             let path = match path.strip_prefix(&root) {
                 Ok(path) => path,
                 Err(_) => {
-                    eprintln!("Failed to strip prefix from {:?}", path);
+                    eprintln!("Failed to strip prefix from {path:?}");
                     continue;
                 }
             };
@@ -31,7 +31,7 @@ fn main() {
             let out_parent_dir = match out_path.parent() {
                 Some(dir) => dir,
                 None => {
-                    eprintln!("Failed to get parent dir of {:?}", out_path);
+                    eprintln!("Failed to get parent dir of {out_path:?}");
                     continue;
                 }
             };
@@ -39,15 +39,15 @@ fn main() {
             match create_dir_all(out_parent_dir) {
                 Ok(_) => (),
                 Err(_) => {
-                    eprintln!("Failed to create dir {:?}", out_parent_dir);
+                    eprintln!("Failed to create dir {out_parent_dir:?}");
                     continue;
                 }
             }
 
             match write(&out_path, html) {
-                Ok(_) => println!("Wrote {:?}", out_path),
+                Ok(_) => println!("Wrote {out_path:?}"),
                 Err(_) => {
-                    eprintln!("Failed to write to {:?}", out_path);
+                    eprintln!("Failed to write to {out_path:?}");
                     continue;
                 }
             }
