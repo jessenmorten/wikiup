@@ -1,4 +1,5 @@
 use markdown::to_html;
+use server::ServerConfig;
 use std::{
     env::temp_dir,
     fs::{create_dir_all, read_to_string, write},
@@ -55,4 +56,13 @@ fn main() {
     }
 
     println!("Time taken: {:?}", start.elapsed());
+
+    let server_config = ServerConfig {
+        addr: "127.0.0.1".to_string(),
+        port: 8080,
+    };
+    match server::dummy_server(server_config) {
+        Ok(_) => println!("Server stopped"),
+        Err(e) => eprintln!("Server stopped with error: {e}"),
+    }
 }

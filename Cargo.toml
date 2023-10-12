@@ -6,9 +6,11 @@ edition = "2021"
 [dependencies]
 markdown = { path = "crates/markdown" }
 util = { path = "crates/util" }
+server = { path = "crates/server" }
 
 [workspace]
 members = [
     "crates/markdown",
     "crates/util",
+    "crates/server",
 ]
